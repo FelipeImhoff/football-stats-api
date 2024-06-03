@@ -3,9 +3,9 @@
   "name": "football-stats-api",
   "version": "2.0.0",
   "description": "",
-  "main": "src/server.js",
+  "main": "src/index.ts",
   "scripts": {
-    "start": "nodemon src/server.js"
+    "dev": "tsx watch src/index.ts"
   },
   "keywords": [],
   "author": "",
@@ -20,7 +20,10 @@
     "puppeteer": "^21.7.0"
   },
   "devDependencies": {
+    "@types/node": "^20.14.0",
     "nodemon": "^3.0.3",
-    "prisma": "^5.13.0"
+    "prisma": "^5.13.0",
+    "tsx": "^4.11.2",
+    "typescript": "^5.4.5"
   }
 }
