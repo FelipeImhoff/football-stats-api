@@ -1,47 +1,19 @@
-import { PrismaClient } from '@prisma/client';
-import { formatDate, getTeamId, createTeam, getManagers, getGameData, getGamesLinks } from './../services/scraper';
+import { PrismaClient, Games, PlayersStats } from '@prisma/client';
+import { formatDate, getTeamId, getGameData, getGamesLinks } from './../services/scraper.js';
+import { GameWithoutId, ScrappedGameData } from '../types/games.js';
 
 const prisma = new PrismaClient();
-
-interface PlayerStats {
-  name: string;
-  minutesPlayed: string;
-  goals: string;
-  assists: string;
-  convertedPenalties: string;
-  attemptedPenalties: string;
-  shots: string;
-  shotsOnTarget: string;
-  xG: string;
-  npxG: string;
-  xAG: string;
-}
-
-interface GameStats {
-  date: string;
-  gameLink: string;
-  season: string;
-  competition: string;
-  homeTeam: string;
-  awayTeam: string;
-  homeTeamGoals: string;
-  awayTeamGoals: string;
-  gameStats: PlayerStats[];
-  homeManager: string;
-  awayManager: string;
-}
 
 async function createGame({
   date, homeTeam, awayTeam, homeTeamGoals, awayTeamGoals,
   gameStats, homeManager, awayManager, gameLink, season, competition
-}: GameStats) {
-  let createdGame, createdGameStats;
-  const homeGoalsInt = parseInt(homeTeamGoals);
-  const awayGoalsInt = parseInt(awayTeamGoals);
-  const homeTeamId = await getTeamId(homeTeam, true, gameLink);
-  const awayTeamId = await getTeamId(awayTeam, false, gameLink);
+}: ScrappedGameData): Promise<{createdGame: Games | string, createdGameStats: PlayersStats[] | string}> {
+  const homeGoalsInt: number = parseInt(homeTeamGoals);
+  const awayGoalsInt: number = parseInt(awayTeamGoals);
+  const homeTeamId: string = await getTeamId(homeTeam, true, gameLink);
+  const awayTeamId: string = await getTeamId(awayTeam, false, gameLink);
 
-  const game = {
+  const game: GameWithoutId = {
     date: await formatDate(date),
     winner: homeGoalsInt > awayGoalsInt ? homeTeam : (homeGoalsInt < awayGoalsInt ? awayTeam : 'Draw'),
     homeTeamId,
@@ -55,20 +27,20 @@ async function createGame({
     competition
   };
 
-  const gameFound = await prisma.games.findFirst({
+  const gameFound: Games | null = await prisma.games.findFirst({
     where: {
       ...game
     }
   });
 
   if (!gameFound) {
-    createdGame = await prisma.games.create({
+    const createdGame: Games = await prisma.games.create({
       data: {
         ...game
       }
     });
 
-    createdGameStats = await Promise.all(gameStats.map(player => {
+    const createdGameStats: PlayersStats[] = await Promise.all(gameStats.map(player => {
       return prisma.playersStats.create({
         data: {
           name: player.name,
@@ -86,7 +58,7 @@ async function createGame({
         },
       });
     }));
-
+      
     return { createdGame, createdGameStats };
   }
 

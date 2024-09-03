@@ -1,45 +1,19 @@
 import { PrismaClient } from '@prisma/client';
-import path from 'path';
 import { Request, Response } from 'express';
-import { createGame, getGameData, getGamesLinks } from '../models/gameModel';
+import { getGameData, getGamesLinks } from '../models/gameModel.js';
 import { format } from 'date-fns';
+import { fetchGamesData, processGames } from '../services/gameService.js';
+import { processGamesSequentially } from '../services/utils.js';
+import { ScrappedGameData, Link, ProcessedGames } from '../types/games.js';
+import { TeamIdParams } from '../types/teams.js';
 
 const prisma = new PrismaClient();
 
-function sleep(time: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, time));
-}
-
-async function processGames<T>(
-  links: T[],
-  batchSize: number,
-  callback: (link: T) => Promise<any>
-): Promise<any[]> {
-  let result: any[] = [];
-
-  for (let i = 0; i < links.length; i += batchSize) {
-    console.log(`${((i / links.length) * 100).toFixed(2)}% (${i}/${links.length})`);
-    const batch = links.slice(i, i + batchSize);
-    result = result.concat(
-      await Promise.all(
-        batch.map(async (link) => {
-          return await callback(link);
-        })
-      )
-    );
-    await sleep(10000); // Aguarda 10 segundos entre os lotes
-  }
-
-  console.log(`100% (${links.length}/${links.length})`);
-
-  return result;
-}
-
 async function getTeamGames(request: Request, response: Response): Promise<void> {
   try {
-    const { id } = request.params;
-    const teamPage = `https://fbref.com/en/squads/${id}`;
-    const gamesData = await getGamesData(teamPage);
+    const { id } = request.params as TeamIdParams;
+    const teamPage: string = `https://fbref.com/en/squads/${id}`;
+    const gamesData: ProcessedGames[] = await getGamesData(teamPage);
     response.status(200).json(gamesData);
   } catch (error) {
     console.error(error);
@@ -50,49 +24,32 @@ async function getTeamGames(request: Request, response: Response): Promise<void>
 async function getTeamGamesBySeason(request: Request, response: Response): Promise<void> {
   try {
     const { id, seasons } = request.query;
-    const seasonsArr = (seasons as string).split(',');
+    const seasonsArr = seasons.split(',');
 
-    const gamesData: any[] = [];
+    const gamesData = await fetchGamesData(id, seasonsArr);
 
-    for (const season of seasonsArr) {
-      const teamPage = `https://fbref.com/en/squads/${id}/${season}`;
-      gamesData.push(await getGamesData(teamPage));
-    }
-
-    const result = await Promise.all(gamesData);
-    response.status(200).json(result);
+    response.status(200).json(gamesData);
   } catch (error) {
     console.error(error);
     response.status(500).json(error);
   }
 }
 
-async function processGamesSequentially(games: any[]): Promise<any[]> {
-  const processedGames: any[] = [];
-  for (const game of games) {
-    const createdGame = await createGame(game);
-    processedGames.push(createdGame);
-  }
-  return processedGames;
-}
-
-async function getGamesData(teamPage: string): Promise<any> {
+async function getGamesData(teamPage: string): Promise<ProcessedGames[]> {
   try {
-    const teamSelector = teamPage.split('/')[5];
-    const __dirname = path.resolve();
-    const links = await getGamesLinks(teamPage);
+    const links: Link[] = await getGamesLinks(teamPage);
 
-    const today = parseInt(format(new Date(), 'yyyyMMdd'));
-    const filteredGames = links.filter(link => parseInt(link.date) < today);
+    const today: number = parseInt(format(new Date(), 'yyyyMMdd'));
+    const filteredGames: Link[] = links.filter(link => parseInt(link.date) < today);
 
-    const playersStatsPromises = await processGames(
+    const games: ScrappedGameData[] = await processGames(
       filteredGames,
       5,
-      async (game) => await getGameData(game, __dirname, teamSelector)
+      async (game) => await getGameData(game)
     );
 
-    const games = await Promise.all(playersStatsPromises);
-    const createdGames = await processGamesSequentially(games);
+    //const games = await Promise.all(playersStatsPromises);
+    const createdGames: ProcessedGames[] = await processGamesSequentially(games);
 
     return createdGames || null;
   } catch (error) {

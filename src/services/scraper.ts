@@ -1,21 +1,24 @@
-import { launch } from 'puppeteer';
-import { createNewTeam, getTeamByName } from './../models/teamModel';
+import puppeteer, { Browser, Page } from 'puppeteer';
+import { createNewTeam, getTeamByName } from './../models/teamModel.js';
+import { ScrappedGameData, Link } from '../types/games.js';
+import { Managers } from '../types/managers.js';
+import { Teams } from '@prisma/client';
 
 const BASEURL = 'https://fbref.com/';
 
-async function formatDate(inputDate: string): Promise<string> {
+async function formatDate(inputDate: string): Promise<Date> {
   const year = inputDate.substring(0, 4);
   const month = inputDate.substring(4, 6);
   const day = inputDate.substring(6, 8);
 
   const formattedDate = new Date(`${year}-${month}-${day}`);
 
-  return formattedDate.toISOString();
+  return formattedDate;
 }
 
 async function createTeam(teamName: string, isHomeTeam: boolean, gameLink: string) {
   try {
-    const browser = await launch({ headless: 'new' });
+    const browser = await puppeteer.launch({ headless: 'new' });
     const page = await browser.newPage();
     page.setDefaultNavigationTimeout(60000 * 10);
     await page.goto(`${BASEURL}${gameLink}`);
@@ -41,42 +44,42 @@ async function createTeam(teamName: string, isHomeTeam: boolean, gameLink: strin
   }
 }
 
-async function getTeamId(teamName: string, isHomeTeam: boolean, gameLink: string) {
-  let team = await getTeamByName(teamName);
+async function getTeamId(teamName: string, isHomeTeam: boolean, gameLink: string): Promise<string> {
+  let team: Teams | null  = await getTeamByName(teamName);
   if (!team) {
     team = await createTeam(teamName, isHomeTeam, gameLink);
   }
   return team.id;
 }
 
-async function getManagers(page) {
-  const managers = await page.evaluate(() => {
-    const isLeague = document.querySelector('#content > div:nth-child(2)').innerText.includes('Matchweek');
+async function getManagers(page: Page): Promise<Managers> {
+  const managers: Managers = await page.evaluate(() => {
+    const isLeague: boolean = document.querySelector<HTMLElement>('#content > div:nth-child(2)').innerText.includes('Matchweek');
     if (isLeague) {
       return {
-        home: decodeURI(encodeURI(document.querySelector('#content > div.scorebox > div:nth-child(1) > div:nth-child(5)').innerText.split(': ')[1]).replaceAll('%C2%A0', ' ')),
-        away: decodeURI(encodeURI(document.querySelector('#content > div.scorebox > div:nth-child(2) > div:nth-child(5)').innerText.split(': ')[1]).replaceAll('%C2%A0', ' '))
+        home: decodeURI(encodeURI(document.querySelector<HTMLElement>('#content > div.scorebox > div:nth-child(1) > div:nth-child(5)').innerText.split(': ')[1]).replaceAll('%C2%A0', ' ')),
+        away: decodeURI(encodeURI(document.querySelector<HTMLElement>('#content > div.scorebox > div:nth-child(2) > div:nth-child(5)').innerText.split(': ')[1]).replaceAll('%C2%A0', ' '))
       };
     }
     return {
-      home: decodeURI(encodeURI(document.querySelector('#content > div.scorebox > div:nth-child(1) > div:nth-child(4)').innerText.split(': ')[1]).replaceAll('%C2%A0', ' ')),
-      away: decodeURI(encodeURI(document.querySelector('#content > div.scorebox > div:nth-child(2) > div:nth-child(4)').innerText.split(': ')[1]).replaceAll('%C2%A0', ' '))
+      home: decodeURI(encodeURI(document.querySelector<HTMLElement>('#content > div.scorebox > div:nth-child(1) > div:nth-child(4)').innerText.split(': ')[1]).replaceAll('%C2%A0', ' ')),
+      away: decodeURI(encodeURI(document.querySelector<HTMLElement>('#content > div.scorebox > div:nth-child(2) > div:nth-child(4)').innerText.split(': ')[1]).replaceAll('%C2%A0', ' '))
     };
   });
   return managers;
 }
 
-async function getGameData(game, __dirname) {
+async function getGameData(game: Link): Promise<ScrappedGameData> {
   try {
-    const browser = await launch({ headless: 'new' });
-    const page = await browser.newPage();
+    const browser: Browser = await puppeteer.launch({ headless: 'new' });
+    const page: Page = await browser.newPage();
     page.setDefaultNavigationTimeout(60000 * 10);
     await page.goto(`${BASEURL}${game.gameLink}`);
 
     await page.setViewport({ width: 1080, height: 1024 });
-    const managers = await getManagers(page);
-    const stats = await page.evaluate((game) => {
-      const selectors = [
+    const managers: Managers = await getManagers(page);
+    const stats: ScrappedGameData = await page.evaluate((game) => {
+      const selectors: string[] = [
         document.querySelector('#content > div.scorebox > div:nth-child(1) > div:nth-child(1) > strong > a').getAttribute('href').match(/\/squads\/([^\/]+)/)[1],
         document.querySelector('#content > div.scorebox > div:nth-child(2) > div:nth-child(1) > strong > a').getAttribute('href').match(/\/squads\/([^\/]+)/)[1]
       ];
@@ -84,9 +87,9 @@ async function getGameData(game, __dirname) {
         date: game.date,
         gameLink: game.gameLink,
         season: game.season,
-        competition: document.querySelector('#content > div:nth-child(2) > a').innerText,
-        homeTeam: document.querySelector('#content > div.scorebox > div:nth-child(1) > div > strong > a').innerText,
-        awayTeam: document.querySelector('#content > div.scorebox > div:nth-child(2) > div > strong > a').innerText,
+        competition: document.querySelector<HTMLElement>('#content > div:nth-child(2) > a').innerText,
+        homeTeam: document.querySelector<HTMLElement>('#content > div.scorebox > div:nth-child(1) > div > strong > a').innerText,
+        awayTeam: document.querySelector<HTMLElement>('#content > div.scorebox > div:nth-child(2) > div > strong > a').innerText,
         homeTeamGoals: document.querySelector('#content > div.scorebox > div:nth-child(1) > div.scores > div.score').innerHTML.replace(/\D/g, ''),
         awayTeamGoals: document.querySelector('#content > div.scorebox > div:nth-child(2) > div.scores > div.score').innerHTML.replace(/\D/g, ''),
         gameStats: selectors.map(teamSelector => {
@@ -106,11 +109,11 @@ async function getGameData(game, __dirname) {
                 xAG: player.querySelector(`#stats_${teamSelector}_summary > tbody > tr > td:nth-child(21)`).innerHTML
               };
             });
-        }).flat()
+        }).flat(),
+        homeManager: managers.home,
+        awayManager: managers.away
       };
     }, game);
-    stats.homeManager = managers.home;
-    stats.awayManager = managers.away;
 
     await browser.close();
     return stats;
@@ -120,22 +123,21 @@ async function getGameData(game, __dirname) {
   }
 }
 
-async function getGamesLinks(teamPage: string) {
+async function getGamesLinks(teamPage: string): Promise<Link[]> {
   try {
-    const browser = await launch({ headless: 'new' });
-    const page = await browser.newPage();
+    const browser: Browser = await puppeteer.launch({ headless: 'new' });
+    const page: Page = await browser.newPage();
 
-    const pageReturn = await page.goto(teamPage);
-    if (pageReturn.status() === 429) return { code: 429, message: 'Bloqued IP!' };
+    await page.goto(teamPage);
 
-    const links = await page.evaluate(() => {
-      const season = document.querySelector('#content > div:nth-child(5) > h4').innerText.substring(0, 9).match(/[0-9-]+/g).join('');
-      const nodeList = document.querySelectorAll('#matchlogs_for > tbody > tr > th > a');
-      const hrefArray = Array.from(nodeList)
+    const links: Link[] = await page.evaluate(() => {
+      const season: string = document.querySelector<HTMLElement>('#content > div:nth-child(5) > h4').innerText.substring(0, 9).match(/[0-9-]+/g).join('');
+      const nodeList: NodeListOf<Element> = document.querySelectorAll('#matchlogs_for > tbody > tr > th > a');
+      const hrefArray: Link[] = Array.from(nodeList)
         .filter(node => node.tagName === 'A')
         .map(link => {
-          const cancelled = link.closest('tr').querySelector('td:nth-child(19)').innerText.toLowerCase().includes('cancelled');
-          const awarded = link.closest('tr').querySelector('td:nth-child(19)').innerText.toLowerCase().includes('awarded');
+          const cancelled = link.closest('tr').querySelector<HTMLElement>('td:nth-child(19)').innerText.toLowerCase().includes('cancelled');
+          const awarded = link.closest('tr').querySelector<HTMLElement>('td:nth-child(19)').innerText.toLowerCase().includes('awarded');
           if (cancelled || awarded) {
             return undefined;
           }

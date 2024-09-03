@@ -1,9 +1,9 @@
 import express from 'express';
 import cors from 'cors';
-import gameRoutes from './routes/gameRoutes';
-import teamRoutes from './routes/teamRoutes';
-import statusRoutes from './routes/statusRoutes';
-import errorHandler from './middlewares/errorHandler';
+import gameRoutes from './routes/gameRoutes.js';
+import teamRoutes from './routes/teamRoutes.js';
+import statusRoutes from './routes/statusRoutes.js';
+import errorHandler from './middlewares/errorHandler.js';
 
 const app = express();
 

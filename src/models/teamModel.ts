@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Teams } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -71,7 +71,7 @@ async function deleteTeam(id: string) {
   });
 }
 
-async function getTeamByName(name: string) {
+async function getTeamByName(name: string): Promise<Teams | null> {
   if (!name) throw new Error('Nome é obrigatório para pesquisar o time.');
 
   const team = await prisma.teams.findFirst({
