@@ -9,9 +9,9 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
-app.use('/api', gameRoutes);
-app.use('/api', teamRoutes);
-app.use('/api', statusRoutes);
+app.use('/api/games', gameRoutes);
+app.use('/api/teams', teamRoutes);
+app.use('/api/status', statusRoutes);
 app.use(errorHandler);
 
 export default app;

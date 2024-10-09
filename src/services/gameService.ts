@@ -1,4 +1,3 @@
-import { getGamesData } from '../controllers/gameController.js';
 import { ScrappedGameData, Link } from '../types/games.js';
 import { sleep } from './utils.js';
 
@@ -10,6 +9,7 @@ async function processGames(
   let result: ScrappedGameData[] = [];
 
   for (let i = 0; i < links.length; i += batchSize) {
+    console.log(`${((i / links.length) * 100).toFixed(2)}% (${i}/${links.length})`)
     const batch: Link[] = links.slice(i, i + batchSize);
     result = result.concat(
       await Promise.all(
@@ -18,26 +18,13 @@ async function processGames(
         })
       )
     );
-    await sleep(10000); // Aguarda 10 segundos entre os lotes
+    await sleep(30000); // Aguarda 12 segundos entre os lotes
   }
 
   return result;
 }
 
-async function fetchGamesData(teamId: string, seasons: string[]): Promise<any[]> {
-  const gamesData: any[] = [];
-
-  for (const season of seasons) {
-    const teamPage = `https://fbref.com/en/squads/${teamId}/${season}`;
-    const data = await getGamesData(teamPage);
-    gamesData.push(data);
-  }
-
-  return Promise.all(gamesData);
-}
-
 
 export {
   processGames,
-  fetchGamesData
 }

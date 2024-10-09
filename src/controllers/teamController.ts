@@ -6,7 +6,7 @@ import {
   getTeamById,
   getTeamByName,
   updateTeam,
-} from '../models/teamModel';
+} from '../models/teamModel.js';
 
 async function store(request: Request, response: Response): Promise<void> {
   try {

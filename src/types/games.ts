@@ -23,7 +23,53 @@ export interface ScrappedGameData {
 
 export interface GameWithoutId extends Omit<Games, 'id'> {}
 
-export interface ProcessedGames {
+export interface ProcessedGame {
   createdGame: Games | string;
   createdGameStats: PlayersStats[] | string;
+}
+
+export interface Stats {
+  games: number,
+  homeTeamWins: number,
+  draws: number,
+  awayTeamWins: number,
+  homeTeamWinPercentage: string,
+  homeAndDrawsPercentage: string,
+  drawsPercentage: string,
+  awayAndDrawsPercentage: string,
+  awayTeamWinPercentage: string,
+  homeAwayWinPercentage: string,
+  homeTeamGoalsAverage: string,
+  awayTeamGoalsAverage: string,
+  bothScored: number,
+  bothScoredPercentual: string,
+  notBothScoredPercentual: string,
+  homeTeamMinGoals: number,
+  awayTeamMinGoals: number,
+  homeTeamMaxGoals: number,
+  awayTeamMaxGoals: number,
+  homeTeamGoalsOver: { [key: string]: number },
+  homeTeamGoalsOverPercentage: {
+    atLeast1: string,
+    atLeast2: string,
+    atLeast3: string,
+    atLeast4: string,
+    atLeast5: string,
+  },
+  awayTeamGoalsOver: { [key: string]: number },
+  awayTeamGoalsOverPercentage: {
+    atLeast1: string,
+    atLeast2: string,
+    atLeast3: string,
+    atLeast4: string,
+    atLeast5: string,
+  },
+  gameTotalOver: { [key: string]: number },
+  gameTotalOverPercentage: {
+    atLeast1: string,
+    atLeast2: string,
+    atLeast3: string,
+    atLeast4: string,
+    atLeast5: string,
+  }
 }

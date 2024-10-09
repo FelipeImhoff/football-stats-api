@@ -1,3 +1,4 @@
-export interface TeamIdParams {
-  id?: string
+export interface Team {
+  id: string
+  name: string
 }

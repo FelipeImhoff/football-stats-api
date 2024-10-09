@@ -1,19 +1,20 @@
-import { PrismaClient } from '@prisma/client';
+import { Games, PrismaClient, Teams } from '@prisma/client';
 import { Request, Response } from 'express';
 import { getGameData, getGamesLinks } from '../models/gameModel.js';
 import { format } from 'date-fns';
-import { fetchGamesData, processGames } from '../services/gameService.js';
+import { processGames } from '../services/gameService.js';
 import { processGamesSequentially } from '../services/utils.js';
-import { ScrappedGameData, Link, ProcessedGames } from '../types/games.js';
-import { TeamIdParams } from '../types/teams.js';
+import { ScrappedGameData, Link, ProcessedGame, Stats } from '../types/games.js';
+import { Manager } from '../types/managers.js';
+import { Team } from '../types/teams.js';
 
 const prisma = new PrismaClient();
 
 async function getTeamGames(request: Request, response: Response): Promise<void> {
   try {
-    const { id } = request.params as TeamIdParams;
-    const teamPage: string = `https://fbref.com/en/squads/${id}`;
-    const gamesData: ProcessedGames[] = await getGamesData(teamPage);
+    const { id } = request.params as {id: string};
+    const teamPage: string = `https://fbref.com/en/squads/${id}/all_comps`;
+    const gamesData: ProcessedGame[] = await getGamesData(teamPage);
     response.status(200).json(gamesData);
   } catch (error) {
     console.error(error);
@@ -23,10 +24,11 @@ async function getTeamGames(request: Request, response: Response): Promise<void>
 
 async function getTeamGamesBySeason(request: Request, response: Response): Promise<void> {
   try {
-    const { id, seasons } = request.query;
-    const seasonsArr = seasons.split(',');
+    const { id, season } = request.params as {id: string, season: string };
+    const teamPage: string = `https://fbref.com/en/squads/${id}/${season}/all_comps`;
 
-    const gamesData = await fetchGamesData(id, seasonsArr);
+
+    const gamesData: ProcessedGame[] = await getGamesData(teamPage);
 
     response.status(200).json(gamesData);
   } catch (error) {
@@ -35,7 +37,7 @@ async function getTeamGamesBySeason(request: Request, response: Response): Promi
   }
 }
 
-async function getGamesData(teamPage: string): Promise<ProcessedGames[]> {
+async function getGamesData(teamPage: string): Promise<ProcessedGame[]> {
   try {
     const links: Link[] = await getGamesLinks(teamPage);
 
@@ -44,12 +46,12 @@ async function getGamesData(teamPage: string): Promise<ProcessedGames[]> {
 
     const games: ScrappedGameData[] = await processGames(
       filteredGames,
-      5,
+      3,
       async (game) => await getGameData(game)
     );
 
     //const games = await Promise.all(playersStatsPromises);
-    const createdGames: ProcessedGames[] = await processGamesSequentially(games);
+    const createdGames: ProcessedGame[] = await processGamesSequentially(games);
 
     return createdGames || null;
   } catch (error) {
@@ -60,7 +62,7 @@ async function getGamesData(teamPage: string): Promise<ProcessedGames[]> {
 
 async function getHomeManagers(request: Request, response: Response): Promise<void> {
   try {
-    const data = await prisma.games.findMany({
+    const data: Manager[] = await prisma.games.findMany({
       select: {
         id: true,
         homeManager: true,
@@ -78,7 +80,7 @@ async function getHomeManagers(request: Request, response: Response): Promise<vo
 
 async function getAwayManagers(request: Request, response: Response): Promise<void> {
   try {
-    const data = await prisma.games.findMany({
+    const data: Manager[] = await prisma.games.findMany({
       select: {
         id: true,
         awayManager: true,
@@ -94,34 +96,16 @@ async function getAwayManagers(request: Request, response: Response): Promise<vo
   }
 }
 
-async function getHomeTeams(request: Request, response: Response): Promise<void> {
+async function getTeams(request: Request, response: Response): Promise<void> {
   try {
-    const data = await prisma.games.findMany({
+    const data: Team[] = await prisma.teams.findMany({
       select: {
         id: true,
-        homeTeam: true,
+        name: true,
       },
-      distinct: ['homeTeam'],
+      distinct: ['name'],
       orderBy: {
-        homeTeam: 'asc',
-      },
-    });
-    response.status(200).json(data);
-  } catch (error) {
-    response.status(500).json(error);
-  }
-}
-
-async function getAwayTeams(request: Request, response: Response): Promise<void> {
-  try {
-    const data = await prisma.games.findMany({
-      select: {
-        id: true,
-        awayTeam: true,
-      },
-      distinct: ['awayTeam'],
-      orderBy: {
-        awayTeam: 'asc',
+        name: 'asc',
       },
     });
     response.status(200).json(data);
@@ -132,20 +116,20 @@ async function getAwayTeams(request: Request, response: Response): Promise<void>
 
 async function getGamesStats(request: Request, response: Response): Promise<void> {
   try {
-    const { game } = request.query;
+    const { game } = request.query as {game?: string};
     const parsedGame = game === undefined ? {} : JSON.parse(game as string);
 
-    const games = await prisma.games.findMany({
+    const games: Games[] = await prisma.games.findMany({
       where: {
         ...parsedGame,
       },
     });
 
-    const gamesAmount = games.length;
-    let homeWins = 0;
-    let awayWins = 0;
-    let draws = 0;
-    let bothScored = 0;
+    const gamesAmount: number = games.length;
+    let homeWins: number = 0;
+    let awayWins: number = 0;
+    let draws: number = 0;
+    let bothScored: number = 0;
     const homeTeamGoals: number[] = [];
     const awayTeamGoals: number[] = [];
     const gameTotalOver: { [key: string]: number } = {
@@ -170,34 +154,38 @@ async function getGamesStats(request: Request, response: Response): Promise<void
       atLeast5: 0,
     };
 
-    games.forEach((game) => {
+    for(const game of games) {
       if (game.winner !== 'Draw') {
-        if (game.winner === game.homeTeam) homeWins++;
-        if (game.winner === game.awayTeam) awayWins++;
+        const team: Teams = await prisma.teams.findFirst({
+          where: {
+            id: game.homeTeamId
+          }
+        })
+        game.winner === team.name ? homeWins++ : awayWins++;
       } else {
         draws++;
       }
       homeTeamGoals.push(game.homeTeamGoals);
       awayTeamGoals.push(game.awayTeamGoals);
       if (game.homeTeamGoals > 0 || game.awayTeamGoals > 0) {
-        const totalGoals = game.homeTeamGoals + game.awayTeamGoals;
+        const totalGoals: number = game.homeTeamGoals + game.awayTeamGoals;
 
-        for (let i = 0; i < Math.min(totalGoals, Object.keys(gameTotalOver).length); i++) {
+        for (let i: number = 0; i < Math.min(totalGoals, Object.keys(gameTotalOver).length); i++) {
           gameTotalOver[`atLeast${i + 1}`]++;
         }
 
         if (game.homeTeamGoals > 0 && game.awayTeamGoals > 0) bothScored++;
       }
 
-      for (let i = 0; i < Math.min(game.homeTeamGoals, Object.keys(homeTeamOver).length); i++) {
+      for (let i: number = 0; i < Math.min(game.homeTeamGoals, Object.keys(homeTeamOver).length); i++) {
         homeTeamOver[`atLeast${i + 1}`]++;
       }
-      for (let i = 0; i < Math.min(game.awayTeamGoals, Object.keys(awayTeamOver).length); i++) {
+      for (let i: number = 0; i < Math.min(game.awayTeamGoals, Object.keys(awayTeamOver).length); i++) {
         awayTeamOver[`atLeast${i + 1}`]++;
       }
-    });
+    };    
 
-    const data = {
+    const stats: Stats = {
       games: gamesAmount,
       homeTeamWins: homeWins,
       draws: draws,
@@ -243,7 +231,7 @@ async function getGamesStats(request: Request, response: Response): Promise<void
       },
     };
 
-    response.status(200).json(data);
+    response.status(200).json(stats);
   } catch (error) {
     response.status(500).json(error);
   }
@@ -253,8 +241,7 @@ export {
   getGamesData,
   getHomeManagers,
   getAwayManagers,
-  getHomeTeams,
-  getAwayTeams,
+  getTeams,
   getGamesStats,
   getTeamGames,
   getTeamGamesBySeason,
