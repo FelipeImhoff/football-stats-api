@@ -3,11 +3,11 @@ import * as teamController from '../controllers/teamController.js';
 
 const router = Router();
 
-router.get('/teams', teamController.index);
-router.post('/teams', teamController.store);
-router.get('/teams/:id', teamController.show);
-router.put('/teams/:id', teamController.update);
-router.delete('/teams/:id', teamController.destroy);
-router.get('/teams/getByName/:name', teamController.getByName);
+router.get('/', teamController.index); //Done and Tested
+router.post('/', teamController.store); //Done and Tested
+router.get('/:id', teamController.show); //Done and Tested
+router.put('/:id', teamController.update); //Done and Tested
+router.delete('/:id', teamController.destroy); //Done and Tested
+router.get('/name/:name', teamController.getByName); //Done and Tested
 
 export default router;

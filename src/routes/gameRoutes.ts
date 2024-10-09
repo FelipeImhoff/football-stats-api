@@ -3,11 +3,11 @@ import * as gameController from '../controllers/gameController.js';
 
 const router = Router();
 
-router.get('/teamGames/:id', gameController.getTeamGames); //DONE and TESTED
-router.get('/teamGames/:id/season/:season', gameController.getTeamGamesBySeason); //DONE and TESTED
-router.get('/homeManagers', gameController.getHomeManagers); //DONE and TESTED
-router.get('/awayManagers', gameController.getAwayManagers); //DONE and TESTED
-router.get('/teams', gameController.getTeams); //DONE and TESTED
-router.get('/gameStats', gameController.getGamesStats); //TESTED
+router.get('/teamGames/:id', gameController.getTeamGames);
+router.get('/teamGames/:id/season/:season', gameController.getTeamGamesBySeason);
+router.get('/homeManagers', gameController.getHomeManagers);
+router.get('/awayManagers', gameController.getAwayManagers);
+router.get('/teams', gameController.getTeams);
+router.get('/gameStats', gameController.getGamesStats);
 
 export default router;
