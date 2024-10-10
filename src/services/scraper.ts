@@ -4,36 +4,37 @@ import { ScrappedGameData, Link } from '../types/games.js';
 import { Managers } from '../types/managers.js';
 import { Teams } from '@prisma/client';
 
-const BASEURL = 'https://fbref.com/';
+const BASEURL: string = 'https://fbref.com/';
 
 async function formatDate(inputDate: string): Promise<Date> {
-  const year = inputDate.substring(0, 4);
-  const month = inputDate.substring(4, 6);
-  const day = inputDate.substring(6, 8);
+  const year: string = inputDate.substring(0, 4);
+  const month: string = inputDate.substring(4, 6);
+  const day: string = inputDate.substring(6, 8);
 
-  const formattedDate = new Date(`${year}-${month}-${day}`);
+  const formattedDate: Date = new Date(`${year}-${month}-${day}`);
 
   return formattedDate;
 }
 
 async function createTeam(teamName: string, isHomeTeam: boolean, gameLink: string) {
   try {
-    const browser = await puppeteer.launch({ headless: 'new' });
-    const page = await browser.newPage();
+    const browser: puppeteer.Browser = await puppeteer.launch({ headless: 'new' });
+    const page: puppeteer.Page = await browser.newPage();
     page.setDefaultNavigationTimeout(60000 * 10);
     await page.goto(`${BASEURL}${gameLink}`);
 
     await page.setViewport({ width: 1080, height: 1024 });
-    const selector = `#content > div.scorebox > div:nth-child(${isHomeTeam ? 1 : 2}) > div:nth-child(1) > strong > a`;
+    const selector: string = `#content > div.scorebox > div:nth-child(${isHomeTeam ? 1 : 2}) > div:nth-child(1) > strong > a`;
 
     await page.waitForSelector(selector);
 
-    const teamLink = await page.evaluate((selector) => {
+    const teamLink: string = await page.evaluate((selector) => {
       return document.querySelector(selector).getAttribute('href');
     }, selector);
     await browser.close();
 
-    const teamIdMatch = teamLink.match(/\/squads\/([^\/]+)/);
+    //Feito até aqui
+    const teamIdMatch: RegExpMatchArray = teamLink.match(/\/squads\/([^\/]+)/);
     const teamId = teamIdMatch[1];
     const team = await createNewTeam(teamId, teamName);
 
