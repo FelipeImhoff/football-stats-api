@@ -33,11 +33,10 @@ async function createTeam(teamName: string, isHomeTeam: boolean, gameLink: strin
     }, selector);
     await browser.close();
 
-    //Feito até aqui
     const teamIdMatch: RegExpMatchArray = teamLink.match(/\/squads\/([^\/]+)/);
-    const teamId = teamIdMatch[1];
-    const team = await createNewTeam(teamId, teamName);
-
+    const teamId: string = teamIdMatch[1];
+    const team: Teams = await createNewTeam(teamId, teamName);
+    
     return team;
   } catch (error) {
     console.error(error);
@@ -76,7 +75,7 @@ async function getGameData(game: Link): Promise<ScrappedGameData> {
     const page: Page = await browser.newPage();
     page.setDefaultNavigationTimeout(60000 * 10);
     await page.goto(`${BASEURL}${game.gameLink}`);
-
+    
     await page.setViewport({ width: 1080, height: 1024 });
     const managers: Managers = await getManagers(page);
     const stats: ScrappedGameData = await page.evaluate((game, managers) => {
@@ -95,27 +94,27 @@ async function getGameData(game: Link): Promise<ScrappedGameData> {
         awayTeamGoals: document.querySelector('#content > div.scorebox > div:nth-child(2) > div.scores > div.score').innerHTML.replace(/\D/g, ''),
         gameStats: selectors.map(teamSelector => {
           return Array.from(document.querySelectorAll(`#stats_${teamSelector}_summary > tbody > tr`))
-            .map(player => {
-              return {
-                name: player.querySelector('th > a').innerHTML,
-                minutesPlayed: player.querySelector(`#stats_${teamSelector}_summary > tbody > tr > td:nth-child(6)`).innerHTML,
-                goals: player.querySelector(`#stats_${teamSelector}_summary > tbody > tr > td:nth-child(7)`).innerHTML,
-                assists: player.querySelector(`#stats_${teamSelector}_summary > tbody > tr > td:nth-child(8)`).innerHTML,
-                convertedPenalties: player.querySelector(`#stats_${teamSelector}_summary > tbody > tr > td:nth-child(9)`).innerHTML,
-                attemptedPenalties: player.querySelector(`#stats_${teamSelector}_summary > tbody > tr > td:nth-child(10)`).innerHTML,
-                shots: player.querySelector(`#stats_${teamSelector}_summary > tbody > tr > td:nth-child(11)`).innerHTML,
-                shotsOnTarget: player.querySelector(`#stats_${teamSelector}_summary > tbody > tr > td:nth-child(12)`).innerHTML,
-                xG: player.querySelector(`#stats_${teamSelector}_summary > tbody > tr > td:nth-child(19)`).innerHTML,
-                npxG: player.querySelector(`#stats_${teamSelector}_summary > tbody > tr > td:nth-child(20)`).innerHTML,
-                xAG: player.querySelector(`#stats_${teamSelector}_summary > tbody > tr > td:nth-child(21)`).innerHTML
-              };
-            });
+          .map(player => {
+            return {
+              name: player.querySelector('th > a').innerHTML,
+              minutesPlayed: player.querySelector(`#stats_${teamSelector}_summary > tbody > tr > td:nth-child(6)`).innerHTML,
+              goals: player.querySelector(`#stats_${teamSelector}_summary > tbody > tr > td:nth-child(7)`).innerHTML,
+              assists: player.querySelector(`#stats_${teamSelector}_summary > tbody > tr > td:nth-child(8)`).innerHTML,
+              convertedPenalties: player.querySelector(`#stats_${teamSelector}_summary > tbody > tr > td:nth-child(9)`).innerHTML,
+              attemptedPenalties: player.querySelector(`#stats_${teamSelector}_summary > tbody > tr > td:nth-child(10)`).innerHTML,
+              shots: player.querySelector(`#stats_${teamSelector}_summary > tbody > tr > td:nth-child(11)`).innerHTML,
+              shotsOnTarget: player.querySelector(`#stats_${teamSelector}_summary > tbody > tr > td:nth-child(12)`).innerHTML,
+              xG: player.querySelector(`#stats_${teamSelector}_summary > tbody > tr > td:nth-child(19)`).innerHTML,
+              npxG: player.querySelector(`#stats_${teamSelector}_summary > tbody > tr > td:nth-child(20)`).innerHTML,
+              xAG: player.querySelector(`#stats_${teamSelector}_summary > tbody > tr > td:nth-child(21)`).innerHTML
+            };
+          });
         }).flat(),
         homeManager: managers.home,
         awayManager: managers.away
       };
     }, game, managers);
-
+    
     await browser.close();
     return stats;
   } catch (error) {
@@ -128,30 +127,31 @@ async function getGamesLinks(teamPage: string): Promise<Link[]> {
   try {
     const browser: Browser = await puppeteer.launch({ headless: false });
     const page: Page = await browser.newPage();
-
+    
     await page.goto(teamPage);
-
+    
     const links: Link[] = await page.evaluate(() => {
       const season: string = document.querySelector('#matchlogs_for_sh > h2 > span').innerHTML.substring(0, 9).match(/[0-9-]+/g).join('');
       const nodeList: NodeListOf<Element> = document.querySelectorAll('#matchlogs_for > tbody > tr > th > a');
       const hrefArray: Link[] = Array.from(nodeList)
-        .filter(node => node.tagName === 'A')
-        .map(link => {
-          const cancelled = link.closest('tr').querySelector<HTMLElement>('td:nth-child(19)').innerHTML.toLowerCase().includes('cancelled');
-          const awarded = link.closest('tr').querySelector<HTMLElement>('td:nth-child(19)').innerHTML.toLowerCase().includes('awarded');
-          if (cancelled || awarded) {
-            return undefined;
-          }
-          return {
-            gameLink: link.getAttribute('href'),
-            date: link.closest('tr').querySelector('th').getAttribute('csk'),
-            season
-          };
-        }).filter(link => link !== undefined);
-
+      .filter(node => node.tagName === 'A')
+      .map(link => {
+        //Feito até aqui
+        const cancelled: boolean = link.closest('tr').querySelector<HTMLElement>('td:nth-child(19)').innerHTML.toLowerCase().includes('cancelled');
+        const awarded: boolean = link.closest('tr').querySelector<HTMLElement>('td:nth-child(19)').innerHTML.toLowerCase().includes('awarded');
+        if (cancelled || awarded) {
+          return undefined;
+        }
+        return {
+          gameLink: link.getAttribute('href'),
+          date: link.closest('tr').querySelector('th').getAttribute('csk'),
+          season
+        };
+      }).filter(link => link !== undefined);
+      
       return hrefArray;
     });
-
+    
     await browser.close();
     return links;
   } catch (error) {
