@@ -18,7 +18,7 @@ async function processGames(
         })
       )
     );
-    await sleep(30000); // Aguarda 12 segundos entre os lotes
+    await sleep(30000);
   }
 
   return result;

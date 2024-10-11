@@ -136,7 +136,6 @@ async function getGamesLinks(teamPage: string): Promise<Link[]> {
       const hrefArray: Link[] = Array.from(nodeList)
       .filter(node => node.tagName === 'A')
       .map(link => {
-        //Feito até aqui
         const cancelled: boolean = link.closest('tr').querySelector<HTMLElement>('td:nth-child(19)').innerHTML.toLowerCase().includes('cancelled');
         const awarded: boolean = link.closest('tr').querySelector<HTMLElement>('td:nth-child(19)').innerHTML.toLowerCase().includes('awarded');
         if (cancelled || awarded) {

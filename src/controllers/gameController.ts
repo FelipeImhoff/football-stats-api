@@ -50,7 +50,6 @@ async function getGamesData(teamPage: string): Promise<ProcessedGame[]> {
       async (game) => await getGameData(game)
     );
 
-    //const games = await Promise.all(playersStatsPromises);
     const createdGames: ProcessedGame[] = await processGamesSequentially(games);
 
     return createdGames || null;
