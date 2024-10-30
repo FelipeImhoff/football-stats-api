@@ -6,7 +6,6 @@ import { processGames } from '../services/gameService.js';
 import { processGamesSequentially } from '../services/utils.js';
 import { ScrappedGameData, Link, ProcessedGame, Stats } from '../types/games.js';
 import { Manager } from '../types/managers.js';
-import { Team } from '../types/teams.js';
 
 const prisma = new PrismaClient();
 
@@ -87,24 +86,6 @@ async function getAwayManagers(request: Request, response: Response): Promise<vo
       distinct: ['awayManager'],
       orderBy: {
         awayManager: 'asc',
-      },
-    });
-    response.status(200).json(data);
-  } catch (error) {
-    response.status(500).json(error);
-  }
-}
-
-async function getTeams(request: Request, response: Response): Promise<void> {
-  try {
-    const data: Team[] = await prisma.teams.findMany({
-      select: {
-        id: true,
-        name: true,
-      },
-      distinct: ['name'],
-      orderBy: {
-        name: 'asc',
       },
     });
     response.status(200).json(data);
@@ -240,7 +221,6 @@ export {
   getGamesData,
   getHomeManagers,
   getAwayManagers,
-  getTeams,
   getGamesStats,
   getTeamGames,
   getTeamGamesBySeason,

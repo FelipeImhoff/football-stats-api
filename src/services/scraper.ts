@@ -125,7 +125,7 @@ async function getGameData(game: Link): Promise<ScrappedGameData> {
 
 async function getGamesLinks(teamPage: string): Promise<Link[]> {
   try {
-    const browser: Browser = await puppeteer.launch({ headless: false });
+    const browser: Browser = await puppeteer.launch({ headless: 'new' });
     const page: Page = await browser.newPage();
     
     await page.goto(teamPage);

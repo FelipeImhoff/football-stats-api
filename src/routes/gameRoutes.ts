@@ -7,7 +7,6 @@ router.get('/teamGames/:id', gameController.getTeamGames);
 router.get('/teamGames/:id/season/:season', gameController.getTeamGamesBySeason);
 router.get('/homeManagers', gameController.getHomeManagers);
 router.get('/awayManagers', gameController.getAwayManagers);
-router.get('/teams', gameController.getTeams);
 router.get('/gameStats', gameController.getGamesStats);
 
 export default router;

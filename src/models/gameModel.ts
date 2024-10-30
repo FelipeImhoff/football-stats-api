@@ -44,7 +44,7 @@ async function createGame({
       return prisma.playersStats.create({
         data: {
           name: player.name,
-          game_id: createdGame.id,
+          game: { connect: { id: createdGame.id } },
           minutesPlayed: parseInt(player.minutesPlayed),
           goals: parseInt(player.goals),
           assists: parseInt(player.assists),
