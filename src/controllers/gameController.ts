@@ -209,6 +209,37 @@ async function getGamesStats(request: Request, response: Response): Promise<void
         atLeast4: `${((gameTotalOver.atLeast4 / gamesAmount) * 100).toFixed(2)}%`,
         atLeast5: `${((gameTotalOver.atLeast5 / gamesAmount) * 100).toFixed(2)}%`,
       },
+      fairOdds: {
+        homeTeamWins: (1 / (homeWins / gamesAmount)).toFixed(2),
+        homeOrAwayWins: (1 / ((homeWins + awayWins) / gamesAmount)).toFixed(2),
+        homeOrDrawsWins: (1 / ((homeWins + draws) / gamesAmount)).toFixed(2),
+        draws: (1 / (draws / gamesAmount)).toFixed(2),
+        awayOrDrawsWins: (1 / ((awayWins + draws) / gamesAmount)).toFixed(2),
+        awayTeamWins: (1 / (awayWins / gamesAmount)).toFixed(2),
+        bothScored: (1 / (bothScored / gamesAmount)).toFixed(2),
+        notBothScored: (1 / ( (gamesAmount - bothScored) / gamesAmount)).toFixed(2),
+        homeTeamGoalsOver: {
+          atLeast1: (1 / (homeTeamOver.atLeast1 / gamesAmount)).toFixed(2),
+          atLeast2: (1 / (homeTeamOver.atLeast2 / gamesAmount)).toFixed(2),
+          atLeast3: (1 / (homeTeamOver.atLeast3 / gamesAmount)).toFixed(2),
+          atLeast4: (1 / (homeTeamOver.atLeast4 / gamesAmount)).toFixed(2),
+          atLeast5: (1 / (homeTeamOver.atLeast5 / gamesAmount)).toFixed(2),
+        },
+        awayTeamGoalsOver: {
+          atLeast1: (1 / (awayTeamOver.atLeast1 / gamesAmount)).toFixed(2),
+          atLeast2: (1 / (awayTeamOver.atLeast2 / gamesAmount)).toFixed(2),
+          atLeast3: (1 / (awayTeamOver.atLeast3 / gamesAmount)).toFixed(2),
+          atLeast4: (1 / (awayTeamOver.atLeast4 / gamesAmount)).toFixed(2),
+          atLeast5: (1 / (awayTeamOver.atLeast5 / gamesAmount)).toFixed(2),
+        },
+        gameTotalOver: {
+          atLeast1: (1 / (gameTotalOver.atLeast1 / gamesAmount)).toFixed(2),
+          atLeast2: (1 / (gameTotalOver.atLeast2 / gamesAmount)).toFixed(2),
+          atLeast3: (1 / (gameTotalOver.atLeast3 / gamesAmount)).toFixed(2),
+          atLeast4: (1 / (gameTotalOver.atLeast4 / gamesAmount)).toFixed(2),
+          atLeast5: (1 / (gameTotalOver.atLeast5 / gamesAmount)).toFixed(2),
+        }
+      }
     };
 
     response.status(200).json(stats);

@@ -72,4 +72,7 @@ export interface Stats {
     atLeast4: string,
     atLeast5: string,
   }
+  fairOdds: {
+    [key:string]: string | object
+  }
 }
