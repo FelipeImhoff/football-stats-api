@@ -61,10 +61,31 @@ async function getManagers(page: Page): Promise<Managers> {
         away: decodeURI(encodeURI(document.querySelector<HTMLElement>('#content > div.scorebox > div:nth-child(2) > div:nth-child(5)')!.innerText.split(': ')[1]).replaceAll('%C2%A0', ' '))
       };
     }
-    return {
-      home: decodeURI(encodeURI(document.querySelector<HTMLElement>('#content > div.scorebox > div:nth-child(1) > div:nth-child(4)')!.innerText.split(': ')[1]).replaceAll('%C2%A0', ' ')),
-      away: decodeURI(encodeURI(document.querySelector<HTMLElement>('#content > div.scorebox > div:nth-child(2) > div:nth-child(4)')!.innerText.split(': ')[1]).replaceAll('%C2%A0', ' '))
-    };
+    if(
+      !!document.querySelector<HTMLElement>('#content > div.scorebox > div:nth-child(1) > div:nth-child(4)') &&
+      !!document.querySelector<HTMLElement>('#content > div.scorebox > div:nth-child(2) > div:nth-child(4)')
+    ){
+      return {
+        home: decodeURI(encodeURI(document.querySelector<HTMLElement>('#content > div.scorebox > div:nth-child(1) > div:nth-child(4)')!.innerText.split(': ')[1]).replaceAll('%C2%A0', ' ')),
+        away: decodeURI(encodeURI(document.querySelector<HTMLElement>('#content > div.scorebox > div:nth-child(2) > div:nth-child(4)')!.innerText.split(': ')[1]).replaceAll('%C2%A0', ' '))
+      };
+    } else {
+      const managersNames: Managers = {
+        home: '',
+        away: ''
+      }
+      if(!!document.querySelector<HTMLElement>('#content > div.scorebox > div:nth-child(1) > div:nth-child(4)')){
+        managersNames.home = decodeURI(encodeURI(document.querySelector<HTMLElement>('#content > div.scorebox > div:nth-child(1) > div:nth-child(4)')!.innerText.split(': ')[1]).replaceAll('%C2%A0', ' '))
+      }else{
+        managersNames.home = 'unknown'
+      }
+      if(!!document.querySelector<HTMLElement>('#content > div.scorebox > div:nth-child(2) > div:nth-child(4)')){
+        managersNames.away = decodeURI(encodeURI(document.querySelector<HTMLElement>('#content > div.scorebox > div:nth-child(2) > div:nth-child(4)')!.innerText.split(': ')[1]).replaceAll('%C2%A0', ' '))
+      }else{
+        managersNames.away = 'unknown'
+      }
+      return managersNames
+    }
   });
   return managers;
 }
