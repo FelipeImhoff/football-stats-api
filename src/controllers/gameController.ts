@@ -3,9 +3,10 @@ import { Request, Response } from 'express';
 import { getGameData, getGamesLinks } from '../models/gameModel.js';
 import { format } from 'date-fns';
 import { processGames } from '../services/gameService.js';
-import { processGamesSequentially } from '../services/utils.js';
+import { processGamesSequentially, sleep } from '../services/utils.js';
 import { ScrappedGameData, Link, ProcessedGame, Stats } from '../types/games.js';
 import { Manager } from '../types/managers.js';
+import { getShouldUpdateTeam } from '../models/teamModel.js';
 
 const prisma = new PrismaClient();
 
@@ -36,12 +37,16 @@ async function getTeamGamesBySeason(request: Request, response: Response): Promi
   }
 }
 
-async function getGamesData(teamPage: string): Promise<ProcessedGame[]> {
+async function getGamesData(teamPage: string, date?: string): Promise<ProcessedGame[]> {
   try {
     const links: Link[] = await getGamesLinks(teamPage);
-
     const today: number = parseInt(format(new Date(), 'yyyyMMdd'));
-    const filteredGames: Link[] = links.filter(link => parseInt(link.date) < today);
+    let filteredGames: Link[] = []
+    if(date){
+      filteredGames = links.filter(link => parseInt(link.date) < today && parseInt(link.date) > parseInt(date));
+    } else {
+      filteredGames = links.filter(link => parseInt(link.date) < today);
+    }
 
     const games: ScrappedGameData[] = await processGames(
       filteredGames,
@@ -212,9 +217,9 @@ async function getGamesStats(request: Request, response: Response): Promise<void
       fairOdds: {
         homeTeamWins: (1 / (homeWins / gamesAmount)).toFixed(2),
         homeOrAwayWins: (1 / ((homeWins + awayWins) / gamesAmount)).toFixed(2),
-        homeOrDrawsWins: (1 / ((homeWins + draws) / gamesAmount)).toFixed(2),
+        homeOrDraws: (1 / ((homeWins + draws) / gamesAmount)).toFixed(2),
         draws: (1 / (draws / gamesAmount)).toFixed(2),
-        awayOrDrawsWins: (1 / ((awayWins + draws) / gamesAmount)).toFixed(2),
+        awayOrDraws: (1 / ((awayWins + draws) / gamesAmount)).toFixed(2),
         awayTeamWins: (1 / (awayWins / gamesAmount)).toFixed(2),
         bothScored: (1 / (bothScored / gamesAmount)).toFixed(2),
         notBothScored: (1 / ( (gamesAmount - bothScored) / gamesAmount)).toFixed(2),
@@ -248,6 +253,31 @@ async function getGamesStats(request: Request, response: Response): Promise<void
   }
 }
 
+// Futuramente quando estiver rodando diariamente fixar valor date
+// Demorou 95 minutos
+async function sync(request: Request, response: Response): Promise<void>  {
+  try {
+    const { date } = request.body
+    const teamsIds = await getShouldUpdateTeam()
+    const newGames: ProcessedGame[] = []
+
+    for(let [index, team] of teamsIds.entries()) {
+      const teamPage: string = `https://fbref.com/en/squads/${team.id}/all_comps`;
+      const gamesData: ProcessedGame[] = await getGamesData(teamPage, date);
+      newGames.push(...gamesData)
+      if(index % 10 === 0){
+        console.log('timeout');
+        sleep(10 * 1000)
+      }
+    }
+
+    response.status(200).json(newGames);
+  } catch (error) {
+    console.error(error);
+    response.status(500).json(error);
+  }
+}
+
 export {
   getGamesData,
   getHomeManagers,
@@ -255,4 +285,5 @@ export {
   getGamesStats,
   getTeamGames,
   getTeamGamesBySeason,
+  sync
 };

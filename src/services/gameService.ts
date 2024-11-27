@@ -18,7 +18,7 @@ async function processGames(
         })
       )
     );
-    await sleep(30000);
+    await sleep(28000);
   }
 
   return result;

@@ -7,3 +7,7 @@ export interface UpdateBody {
   id?: string
   name?: string
 }
+
+export interface IdOnly {
+  id: string
+}

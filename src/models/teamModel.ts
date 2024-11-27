@@ -1,4 +1,5 @@
 import { PrismaClient, Teams } from '@prisma/client';
+import { IdOnly } from '../types/teams';
 
 const prisma = new PrismaClient();
 
@@ -83,11 +84,25 @@ async function getTeamByName(name: string): Promise<Teams | null> {
   return team || null;
 }
 
+async function getShouldUpdateTeam(): Promise<IdOnly[]> {
+  const teamsIds: IdOnly[] = await prisma.teams.findMany({
+    select: {
+      id: true
+    },
+    where: {
+      shouldUpdate: true
+    }
+  })
+  
+  return teamsIds
+}
+
 export {
   createNewTeam,
   getAllTeams,
   getTeamById,
   updateTeam,
   deleteTeam,
-  getTeamByName
+  getTeamByName,
+  getShouldUpdateTeam
 };
