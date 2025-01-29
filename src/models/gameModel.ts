@@ -65,5 +65,18 @@ async function createGame({
   return { createdGame: 'Game already exists', createdGameStats: 'GameStats already exists' };
 }
 
-export { createGame, getGameData, getGamesLinks };
+async function checkGameLinkExists(gameLink: string): Promise<boolean> {
+  const game = await prisma.games.findFirst({
+    where: {
+      link: gameLink
+    }
+  })
+
+  return game !== null
+}
+
+export {
+  createGame,
+  checkGameLinkExists
+};
 

@@ -4,12 +4,13 @@ import { IdOnly } from '../types/teams';
 const prisma = new PrismaClient();
 
 async function createNewTeam(id: string, name: string): Promise<Teams> {
+  console.log(id)
+  console.log(name)
   if (!id || !name) throw new Error('ID e nome são obrigatórios para criar um novo time.');
 
   const teamExists = await prisma.teams.findFirst({
     where: {
-      id,
-      name
+      id
     }
   });
 

@@ -265,7 +265,7 @@ async function sync(request: Request, response: Response): Promise<void>  {
       const teamPage: string = `https://fbref.com/en/squads/${team.id}/all_comps`;
       const gamesData: ProcessedGame[] = await getGamesData(teamPage, date);
       newGames.push(...gamesData)
-      if(index % 10 === 0){
+      if(index % 15 === 0){
         console.log('timeout');
         sleep(10 * 1000)
       }
