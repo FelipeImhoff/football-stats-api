@@ -1,6 +1,7 @@
 import { Games, PrismaClient, Teams } from '@prisma/client';
 import { Request, Response } from 'express';
-import { getGameData, getGamesLinks } from '../models/gameModel.js';
+//import { getGameData, getGamesLinks } from '../models/gameModel.js';
+import  { getGameData, getGamesLinks } from '../services/scraper.js'
 import { format } from 'date-fns';
 import { processGames } from '../services/gameService.js';
 import { processGamesSequentially, sleep } from '../services/utils.js';
