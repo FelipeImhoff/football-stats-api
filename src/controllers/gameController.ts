@@ -1,6 +1,5 @@
 import { Games, PrismaClient, Teams } from '@prisma/client';
 import { Request, Response } from 'express';
-//import { getGameData, getGamesLinks } from '../models/gameModel.js';
 import  { getGameData, getGamesLinks } from '../services/scraper.js'
 import { format } from 'date-fns';
 import { processGames } from '../services/gameService.js';
@@ -8,6 +7,7 @@ import { processGamesSequentially, sleep } from '../services/utils.js';
 import { ScrappedGameData, Link, ProcessedGame, Stats } from '../types/games.js';
 import { Manager } from '../types/managers.js';
 import { getShouldUpdateTeam } from '../models/teamModel.js';
+import { checkGameLinkExists } from '../models/gameModel.js';
 
 const prisma = new PrismaClient();
 
@@ -15,7 +15,7 @@ async function getTeamGames(request: Request, response: Response): Promise<void>
   try {
     const { id } = request.params as {id: string};
     const teamPage: string = `https://fbref.com/en/squads/${id}/all_comps`;
-    const gamesData: ProcessedGame[] = await getGamesData(teamPage);
+    const gamesData: ProcessedGame[] = await getGamesData(teamPage);    
     response.status(200).json(gamesData);
   } catch (error) {
     console.error(error);
@@ -40,13 +40,19 @@ async function getTeamGamesBySeason(request: Request, response: Response): Promi
 
 async function getGamesData(teamPage: string, date?: string): Promise<ProcessedGame[]> {
   try {
+    console.log(teamPage);
     const links: Link[] = await getGamesLinks(teamPage);
     const today: number = parseInt(format(new Date(), 'yyyyMMdd'));
+    const linksWithExistence: Link[] = await Promise.all(
+      links.map(async (link) => ({
+        ...link,
+        exists: await checkGameLinkExists(link.gameLink)
+      })))
     let filteredGames: Link[] = []
     if(date){
-      filteredGames = links.filter(link => parseInt(link.date) < today && parseInt(link.date) > parseInt(date));
+      filteredGames = linksWithExistence.filter(link => parseInt(link.date) < today && !link.exists && parseInt(link.date) > parseInt(date));
     } else {
-      filteredGames = links.filter(link => parseInt(link.date) < today);
+      filteredGames = linksWithExistence.filter(link => parseInt(link.date) < today && !link.exists );
     }
 
     const games: ScrappedGameData[] = await processGames(
@@ -255,7 +261,6 @@ async function getGamesStats(request: Request, response: Response): Promise<void
 }
 
 // Futuramente quando estiver rodando diariamente fixar valor date
-// Demorou 95 minutos
 async function sync(request: Request, response: Response): Promise<void>  {
   try {
     const { date } = request.body
@@ -266,9 +271,9 @@ async function sync(request: Request, response: Response): Promise<void>  {
       const teamPage: string = `https://fbref.com/en/squads/${team.id}/all_comps`;
       const gamesData: ProcessedGame[] = await getGamesData(teamPage, date);
       newGames.push(...gamesData)
-      if(index % 15 === 0){
+      if(index % 5 === 0){
         console.log('timeout');
-        sleep(10 * 1000)
+        sleep(30 * 1000)
       }
     }
 

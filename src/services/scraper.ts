@@ -21,6 +21,7 @@ async function createTeam(teamName: string, isHomeTeam: boolean, gameLink: strin
     const browser: puppeteer.Browser = await puppeteer.launch({ headless: 'new' })
     const page: puppeteer.Page = await browser.newPage()
     page.setDefaultNavigationTimeout(60000 * 10)
+    page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36')
     await page.goto(`${BASEURL}${gameLink}`)
 
     await page.setViewport({ width: 1080, height: 1024 })
@@ -64,7 +65,7 @@ async function getManagers(page: Page): Promise<Managers> {
     if(
       !!document.querySelector<HTMLElement>('#content > div.scorebox > div:nth-child(1) > div:nth-child(4)') &&
       !!document.querySelector<HTMLElement>('#content > div.scorebox > div:nth-child(2) > div:nth-child(4)')
-    ){
+    ) {
       return {
         home: decodeURI(encodeURI(document.querySelector<HTMLElement>('#content > div.scorebox > div:nth-child(1) > div:nth-child(4)')!.innerText.split(': ')[1]).replaceAll('%C2%A0', ' ')),
         away: decodeURI(encodeURI(document.querySelector<HTMLElement>('#content > div.scorebox > div:nth-child(2) > div:nth-child(4)')!.innerText.split(': ')[1]).replaceAll('%C2%A0', ' '))
@@ -95,6 +96,7 @@ async function getGameData(game: Link): Promise<ScrappedGameData> {
   try {
     const browser: Browser = await puppeteer.launch({ headless: 'new' })
     const page: Page = await browser.newPage()
+    page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36')
     await page.goto(`${BASEURL}${game.gameLink}`, { timeout: 70000, waitUntil: 'domcontentloaded' })
     
     await page.setViewport({ width: 1080, height: 1024 })
@@ -104,6 +106,7 @@ async function getGameData(game: Link): Promise<ScrappedGameData> {
         document.querySelector('#content > div.scorebox > div:nth-child(1) > div:nth-child(1) > strong > a').getAttribute('href').match(/\/squads\/([^\/]+)/)[1],
         document.querySelector('#content > div.scorebox > div:nth-child(2) > div:nth-child(1) > strong > a').getAttribute('href').match(/\/squads\/([^\/]+)/)[1]
       ]
+
       return {
         date: game.date,
         gameLink: game.gameLink,
@@ -141,7 +144,6 @@ async function getGameData(game: Link): Promise<ScrappedGameData> {
     await browser.close()
     return stats
   } catch (error) {
-    console.log(game)
     console.error(error)
     throw error
   }
@@ -151,9 +153,10 @@ async function getGamesLinks(teamPage: string): Promise<Link[]> {
   try {
     const browser: Browser = await puppeteer.launch({ headless: 'new' })
     const page: Page = await browser.newPage()
+    page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36')
     
     await page.goto(teamPage)
-    
+
     const links: Link[] = await page.evaluate(() => {
       const season: string = document.querySelector('#matchlogs_for_sh > h2 > span').innerHTML.substring(0, 9).match(/[0-9-]+/g).join('')
       const nodeList: NodeListOf<Element> = document.querySelectorAll('#matchlogs_for > tbody > tr > th > a')
@@ -170,7 +173,7 @@ async function getGamesLinks(teamPage: string): Promise<Link[]> {
           date: link.closest('tr').querySelector('th').getAttribute('csk'),
           season
         }
-      }).filter(link => link !== undefined)
+      })
       
       return hrefArray
     })

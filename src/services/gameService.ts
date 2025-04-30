@@ -18,8 +18,9 @@ async function processGames(
         })
       )
     );
-    await sleep(28000);
+    await sleep(30000);
   }
+  console.log(`${100}% (${links.length}/${links.length})`)
 
   return result;
 }

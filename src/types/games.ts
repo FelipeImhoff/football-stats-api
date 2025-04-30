@@ -5,6 +5,7 @@ export interface Link {
   gameLink: string;
   date: string;
   season: string;
+  exists?: boolean | Promise<boolean>
 }
 
 export interface ScrappedGameData {
