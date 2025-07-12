@@ -12,7 +12,7 @@ import {
   chanceHomeOrDraw,
 } from "./rules.js";
 
-export const spaniseagueRules: ChampionshipRule = {
+export const spanishLeagueRules: ChampionshipRule = {
   applyRule(homeTeamData, awayTeamData) {
     return init(homeTeamData, awayTeamData);
   },

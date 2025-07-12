@@ -1,16 +1,17 @@
-import { ChampionshipRule } from "../types/rules.js";
 import { brazilianLeagueRules } from "./brazilianLeague/index.js";
 import { BadRequestError } from "../errors/BadRequestError.js";
 import { resolveChampionAlias } from "../Utils/aliasUtils.js";
 import { englishLeagueRules } from "./englishLeague/index.js";
+import { italianLeagueRules } from "./italianLeague/index.js";
+import { spanishLeagueRules } from "./spanishLeague/index.js";
 import { germanLeagueRules } from "./germanLeague/index.js";
 import { frenchLeagueRules } from "./frenchLeague/index.js";
-import { italianLeagueRules } from "./italianLeague/index.js";
+import { ChampionshipRule } from "../types/rules.js";
 
 const ruleMap: Record<string, ChampionshipRule> = {
   brazilianLeague: brazilianLeagueRules,
   englishLeague: englishLeagueRules,
-  // spanishLeague: spanishLeagueRules,
+  spanishLeague: spanishLeagueRules,
   germanLeague: germanLeagueRules,
   frenchLeague: frenchLeagueRules,
   italianLeague: italianLeagueRules,

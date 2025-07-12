@@ -1,5 +1,4 @@
 import { Stats } from "../../types/games.js";
-import { absoluteDifference } from "../../Utils/mathUtils";
 import {
   absoluteDifference,
   average,
