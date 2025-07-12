@@ -1,4 +1,4 @@
-import { createGame } from "../models/gameModel.js";
+import { createGame, getGames } from "../models/gameModel.js";
 import { ProcessedGame, ScrappedGameData } from "../types/games.js";
 
 function sleep(time: number): Promise<void> {
@@ -16,4 +16,18 @@ async function processGamesSequentially(
   return processedGames;
 }
 
-export { sleep, processGamesSequentially };
+async function teamHasPlayedCompetition(
+  teamId: string,
+  competition: string
+): Promise<boolean> {
+  const games = await getGames({
+    competition,
+    OR: [{ homeTeamId: teamId }, { awayTeamId: teamId }],
+  });
+  if (games.length > 0) {
+    return true;
+  }
+  return false;
+}
+
+export { sleep, processGamesSequentially, teamHasPlayedCompetition };

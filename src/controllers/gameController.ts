@@ -5,17 +5,20 @@ import {
   ProcessedGame,
   Stats,
 } from "../types/games.js";
-import { processGamesSequentially, sleep } from "../Utils/gamesUtils.js";
+import {
+  processGamesSequentially,
+  sleep,
+  teamHasPlayedCompetition,
+} from "../Utils/gamesUtils.js";
+import { processChampionship } from "../services/ProcessChampionship.js";
 import { checkGameLinkExists, getGames } from "../models/gameModel.js";
 import { getGameData, getGamesLinks } from "../services/scraper.js";
 import { getShouldUpdateTeam } from "../models/teamModel.js";
+import { NextFunction, Request, Response } from "express";
 import { processGames } from "../services/gameService.js";
 import { Games, PrismaClient } from "@prisma/client";
 import { Manager } from "../types/managers.js";
-import { NextFunction, Request, Response } from "express";
 import { format } from "date-fns";
-import { log } from "console";
-import { processChampionship } from "../services/ProcessChampionship.js";
 
 const prisma = new PrismaClient();
 
@@ -200,13 +203,31 @@ async function getInsights(
       return;
     }
 
+    const homeTeamHasPlayedCompetitionPromise: Promise<boolean> =
+      teamHasPlayedCompetition(homeTeamId, competition);
+    const awayTeamHasPlayedCompetitionPromise: Promise<boolean> =
+      teamHasPlayedCompetition(awayTeamId, competition);
+
+    const [homeTeamHasPlayedCompetition, awayTeamHasPlayedCompetition] =
+      await Promise.all([
+        homeTeamHasPlayedCompetitionPromise,
+        awayTeamHasPlayedCompetitionPromise,
+      ]);
+
+    if (!homeTeamHasPlayedCompetition || !awayTeamHasPlayedCompetition) {
+      response.status(400).json({
+        error: "Correlação entre times e campeonato não encontrada",
+      });
+      return;
+    }
+
     const homeTeamRequest = {
       homeTeamId,
       homeManager,
     };
 
     const homeTeamGames: Games[] = await getGames(homeTeamRequest);
-    const homeTeamStats: Stats = await calculateStats(homeTeamGames);
+    const homeTeamStatsPromise: Promise<Stats> = calculateStats(homeTeamGames);
 
     const awayTeamRequest = {
       awayTeamId,
@@ -214,7 +235,28 @@ async function getInsights(
     };
 
     const awayTeamGames: Games[] = await getGames(awayTeamRequest);
-    const awayTeamStats: Stats = await calculateStats(awayTeamGames);
+    const awayTeamStatsPromise: Promise<Stats> = calculateStats(awayTeamGames);
+
+    const [homeTeamStats, awayTeamStats] = await Promise.all([
+      homeTeamStatsPromise,
+      awayTeamStatsPromise,
+    ]);
+
+    if (homeTeamStats.games < 8) {
+      response.status(400).json({
+        error:
+          "Com esses filtros o time da casa não tem quantidade mínima de jogos",
+      });
+      return;
+    }
+
+    if (homeTeamStats.games < 8) {
+      response.status(400).json({
+        error:
+          "Com esses filtros o time visitante não tem quantidade mínima de jogos",
+      });
+      return;
+    }
 
     const result = processChampionship(
       competition,

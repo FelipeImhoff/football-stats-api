@@ -13,7 +13,7 @@ import {
   chanceOverTwoAndHalfGoal,
 } from "./rules.js";
 
-export const brazilianLeagueRules: ChampionshipRule = {
+export const englishLeagueRules: ChampionshipRule = {
   applyRule(homeTeamData, awayTeamData) {
     return init(homeTeamData, awayTeamData);
   },

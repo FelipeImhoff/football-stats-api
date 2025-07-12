@@ -27,11 +27,13 @@ export function chanceHomeOrDraw(
   const homeTeamHomeOrDrawsPercentage = parsePercentage(
     homeTeamData.homeOrDrawsPercentage
   );
+  const awayTeamHomeOrDrawsPercentage = parsePercentage(
+    awayTeamData.homeOrDrawsPercentage
+  );
+  const differenceValue =
+    homeTeamHomeOrDrawsPercentage - awayTeamHomeOrDrawsPercentage;
 
-  if (
-    homeTeamHomeOrDrawsPercentage !== null &&
-    homeTeamHomeOrDrawsPercentage > 83.51
-  ) {
+  if (differenceValue > 0) {
     return "Chance dupla vitória do time da casa ou empate";
   }
   return null;
@@ -47,14 +49,13 @@ export function chanceHomeOrAway(
   const awayTeamHomeOrAwayPercentage = parsePercentage(
     awayTeamData.homeOrAwayWinPercentage
   );
-  const absoluteDifferenceValue = absoluteDifference(
-    homeTeamHomeOrAwayPercentage,
-    awayTeamHomeOrAwayPercentage
-  );
+  const differenceValue =
+    homeTeamHomeOrAwayPercentage - awayTeamHomeOrAwayPercentage;
 
-  if (homeTeamHomeOrAwayPercentage > 90 || absoluteDifferenceValue > 14.98) {
+  if (differenceValue <= 17.08) {
     return "Chance dupla time da casa ou visitante";
   }
+
   return null;
 }
 
@@ -76,22 +77,18 @@ export function chanceHomeOverHalfGoal(
   homeTeamData: Stats,
   awayTeamData: Stats
 ): string | null {
-  const homeTeamOverHalfGoalPercentage = parsePercentage(
-    homeTeamData.homeTeamGoalsOverPercentage.atLeast1
+  const homeTeamHomeAverageGoals = parsePercentage(
+    homeTeamData.homeTeamGoalsAverage
   );
-  const awayTeamOverHalfGoalPercentage = parsePercentage(
-    awayTeamData.homeTeamGoalsOverPercentage.atLeast1
+  const awayTeamHomeAverageGoals = parsePercentage(
+    awayTeamData.homeTeamGoalsAverage
+  );
+  const homeTeamAverageGoals = average(
+    homeTeamHomeAverageGoals,
+    awayTeamHomeAverageGoals
   );
 
-  const absoluteDifferenceValue = absoluteDifference(
-    homeTeamOverHalfGoalPercentage,
-    awayTeamOverHalfGoalPercentage
-  );
-
-  const differenceValue =
-    homeTeamOverHalfGoalPercentage - awayTeamOverHalfGoalPercentage;
-
-  if (absoluteDifferenceValue > 2.78 && differenceValue > -9.47) {
+  if (homeTeamAverageGoals > 1.13) {
     return "Time da casa faz mais de 0.5 gols";
   }
   return null;
@@ -107,23 +104,12 @@ export function chanceAwayOverHalfGoal(
   const awayTeamAwayTeamGoalsAverage = parsePercentage(
     awayTeamData.awayTeamGoalsAverage
   );
-  const teamsAverageGoals = average(
+  const awayTeamAverageGoals = average(
     homeTeamAwayTeamGoalsAverage,
     awayTeamAwayTeamGoalsAverage
   );
 
-  const homeTeamOverHalfGoalPercentage = parsePercentage(
-    homeTeamData.awayTeamGoalsOverPercentage.atLeast1
-  );
-  const awayTeamOverHalfGoalPercentage = parsePercentage(
-    awayTeamData.awayTeamGoalsOverPercentage.atLeast1
-  );
-  const absoluteDifferenceValue = absoluteDifference(
-    homeTeamOverHalfGoalPercentage,
-    awayTeamOverHalfGoalPercentage
-  );
-
-  if (teamsAverageGoals > 1 && absoluteDifferenceValue <= 3.41) {
+  if (awayTeamAverageGoals > 0.88) {
     return "Time visitante faz mais de 0.5 gols";
   }
   return null;
@@ -133,17 +119,16 @@ export function chanceOverHalfGoal(
   homeTeamData: Stats,
   awayTeamData: Stats
 ): string | null {
-  const homeTeamAverageGoals =
-    parsePercentage(homeTeamData.homeTeamGoalsAverage) +
-    parsePercentage(homeTeamData.awayTeamGoalsAverage);
+  const homeTeamOverTwoAndHalfGoalPercentage = parsePercentage(
+    homeTeamData.homeTeamGoalsOverPercentage.atLeast3
+  );
+  const awayTeamOverTwoAndHalfGoalPercentage = parsePercentage(
+    awayTeamData.homeTeamGoalsOverPercentage.atLeast3
+  );
+  const differenceValue =
+    homeTeamOverTwoAndHalfGoalPercentage - awayTeamOverTwoAndHalfGoalPercentage;
 
-  const awayTeamAverageGoals =
-    parsePercentage(awayTeamData.homeTeamGoalsAverage) +
-    parsePercentage(awayTeamData.awayTeamGoalsAverage);
-
-  const relativeHomeStrength = homeTeamAverageGoals - awayTeamAverageGoals;
-
-  if (relativeHomeStrength > -1.33) {
+  if (differenceValue > -1.33) {
     return "Total de gols mais de 0.5";
   }
   return null;
@@ -163,19 +148,8 @@ export function chanceOverOneAndHalfGoal(
     homeTeamOverOneAndHalfGoalPercentage,
     awayTeamOverOneAndHalfGoalPercentage
   );
-  const differenceValue =
-    homeTeamOverOneAndHalfGoalPercentage - awayTeamOverOneAndHalfGoalPercentage;
 
-  const relativeHomeStrength = absoluteDifference(
-    homeTeamOverOneAndHalfGoalPercentage,
-    awayTeamOverOneAndHalfGoalPercentage
-  );
-
-  if (
-    absoluteDifferenceValue < 58.24 &&
-    differenceValue < 36.36 &&
-    relativeHomeStrength > 0.06
-  ) {
+  if (absoluteDifferenceValue < 58.24) {
     return "Total de gols mais de 1.5";
   }
   return null;

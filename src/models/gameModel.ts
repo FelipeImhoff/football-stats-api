@@ -1,4 +1,4 @@
-import { PrismaClient, Games, PlayersStats } from "@prisma/client";
+import { PrismaClient, Games, PlayersStats, Prisma } from "@prisma/client";
 import { formatDate, getTeamId } from "./../services/scraper.js";
 import { GameWithoutId, ScrappedGameData } from "../types/games.js";
 
@@ -97,7 +97,9 @@ async function checkGameLinkExists(gameLink: string): Promise<boolean> {
   return game !== null;
 }
 
-async function getGames(searchParams: Partial<Games>): Promise<Games[]> {
+async function getGames(
+  searchParams: Prisma.GamesWhereInput
+): Promise<Games[]> {
   return await prisma.games.findMany({
     where: {
       ...searchParams,

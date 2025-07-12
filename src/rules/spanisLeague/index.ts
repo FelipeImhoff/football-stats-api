@@ -5,15 +5,14 @@ import {
   chanceHomeWin,
   chanceAwayOrDraw,
   chanceAwayOverHalfGoal,
-  chanceHomeOrAway,
-  chanceHomeOrDraw,
   chanceHomeOverHalfGoal,
   chanceOverHalfGoal,
-  chanceOverOneAndHalfGoal,
   chanceOverTwoAndHalfGoal,
+  chanceOverOneAndHalfGoal,
+  chanceHomeOrDraw,
 } from "./rules.js";
 
-export const brazilianLeagueRules: ChampionshipRule = {
+export const spaniseagueRules: ChampionshipRule = {
   applyRule(homeTeamData, awayTeamData) {
     return init(homeTeamData, awayTeamData);
   },
@@ -26,7 +25,6 @@ function init(
   const result = {
     chanceHomeWin: chanceHomeWin(homeTeamData, awayTeamData),
     chanceHomeOrDraw: chanceHomeOrDraw(homeTeamData, awayTeamData),
-    chanceHomeOrAway: chanceHomeOrAway(homeTeamData, awayTeamData),
     chanceAwayOrDraw: chanceAwayOrDraw(homeTeamData, awayTeamData),
     chanceHomeOverHalfGoal: chanceHomeOverHalfGoal(homeTeamData, awayTeamData),
     chanceAwayOverHalfGoal: chanceAwayOverHalfGoal(homeTeamData, awayTeamData),
