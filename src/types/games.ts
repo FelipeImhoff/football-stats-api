@@ -1,11 +1,11 @@
-import { Games, PlayersStats } from '@prisma/client';
-import { GameStats } from './players.js';
+import { Games, PlayersStats } from "@prisma/client";
+import { GameStats } from "./players.js";
 
 export interface Link {
   gameLink: string;
   date: string;
   season: string;
-  exists?: boolean | Promise<boolean>
+  exists?: boolean | Promise<boolean>;
 }
 
 export interface ScrappedGameData {
@@ -22,7 +22,7 @@ export interface ScrappedGameData {
   gameStats: GameStats[];
 }
 
-export interface GameWithoutId extends Omit<Games, 'id'> {}
+export interface GameWithoutId extends Omit<Games, "id"> {}
 
 export interface ProcessedGame {
   createdGame: Games | string;
@@ -30,50 +30,58 @@ export interface ProcessedGame {
 }
 
 export interface Stats {
-  games: number,
-  homeTeamWins: number,
-  draws: number,
-  awayTeamWins: number,
-  homeTeamWinPercentage: string,
-  homeOrAwayWinPercentage: string,
-  homeOrDrawsPercentage: string,
-  drawsPercentage: string,
-  awayOrDrawsPercentage: string,
-  awayTeamWinPercentage: string,
-  homeTeamGoalsAverage: string,
-  awayTeamGoalsAverage: string,
-  bothScored: number,
-  bothScoredPercentual: string,
-  notBothScoredPercentual: string,
-  homeTeamMinGoals: number,
-  awayTeamMinGoals: number,
-  homeTeamMaxGoals: number,
-  awayTeamMaxGoals: number,
-  homeTeamGoalsOver: { [key: string]: number },
+  games: number;
+  homeTeamWins: number;
+  draws: number;
+  awayTeamWins: number;
+  homeTeamWinPercentage: string;
+  homeOrAwayWinPercentage: string;
+  homeOrDrawsPercentage: string;
+  drawsPercentage: string;
+  awayOrDrawsPercentage: string;
+  awayTeamWinPercentage: string;
+  homeTeamGoalsAverage: string;
+  awayTeamGoalsAverage: string;
+  bothScored: number;
+  bothScoredPercentual: string;
+  notBothScoredPercentual: string;
+  homeTeamMinGoals: number;
+  awayTeamMinGoals: number;
+  homeTeamMaxGoals: number;
+  awayTeamMaxGoals: number;
+  homeTeamGoalsOver: { [key: string]: number };
   homeTeamGoalsOverPercentage: {
-    atLeast1: string,
-    atLeast2: string,
-    atLeast3: string,
-    atLeast4: string,
-    atLeast5: string,
-  },
-  awayTeamGoalsOver: { [key: string]: number },
+    atLeast1: string;
+    atLeast2: string;
+    atLeast3: string;
+    atLeast4: string;
+    atLeast5: string;
+  };
+  awayTeamGoalsOver: { [key: string]: number };
   awayTeamGoalsOverPercentage: {
-    atLeast1: string,
-    atLeast2: string,
-    atLeast3: string,
-    atLeast4: string,
-    atLeast5: string,
-  },
-  gameTotalOver: { [key: string]: number },
+    atLeast1: string;
+    atLeast2: string;
+    atLeast3: string;
+    atLeast4: string;
+    atLeast5: string;
+  };
+  gameTotalOver: { [key: string]: number };
   gameTotalOverPercentage: {
-    atLeast1: string,
-    atLeast2: string,
-    atLeast3: string,
-    atLeast4: string,
-    atLeast5: string,
-  }
-  fairOdds: {
-    [key:string]: string | object
-  }
+    atLeast1: string;
+    atLeast2: string;
+    atLeast3: string;
+    atLeast4: string;
+    atLeast5: string;
+  };
+  fairOdds?: {
+    [key: string]: string | object;
+  };
 }
+
+export type GoalsOverPercentage = {
+  atLeast1: string;
+  atLeast2: string;
+  atLeast3: string;
+  atLeast4: string;
+  atLeast5: string;
+};

@@ -1,5 +1,5 @@
-import { ScrappedGameData, Link } from '../types/games.js';
-import { sleep } from './utils.js';
+import { ScrappedGameData, Link } from "../types/games.js";
+import { sleep } from "../Utils/gamesUtils.js";
 
 async function processGames(
   links: Link[],
@@ -9,7 +9,9 @@ async function processGames(
   let result: ScrappedGameData[] = [];
 
   for (let i = 0; i < links.length; i += batchSize) {
-    console.log(`${((i / links.length) * 100).toFixed(2)}% (${i}/${links.length})`)
+    console.log(
+      `${((i / links.length) * 100).toFixed(2)}% (${i}/${links.length})`
+    );
     const batch: Link[] = links.slice(i, i + batchSize);
     result = result.concat(
       await Promise.all(
@@ -18,14 +20,11 @@ async function processGames(
         })
       )
     );
-    await sleep(30000);
+    await sleep(29000);
   }
-  console.log(`${100}% (${links.length}/${links.length})`)
+  console.log(`${100}% (${links.length}/${links.length})`);
 
   return result;
 }
 
-
-export {
-  processGames,
-}
+export { processGames };
