@@ -11,7 +11,11 @@ import {
   teamHasPlayedCompetition,
 } from "../Utils/gamesUtils.js";
 import { processChampionship } from "../services/ProcessChampionship.js";
-import { checkGameLinkExists, getGames } from "../models/gameModel.js";
+import {
+  checkGameLinkExists,
+  findDistinctCompetitions,
+  getGames,
+} from "../models/gameModel.js";
 import { getGameData, getGamesLinks } from "../services/scraper.js";
 import { getShouldUpdateTeam } from "../models/teamModel.js";
 import { NextFunction, Request, Response } from "express";
@@ -182,7 +186,6 @@ async function sync(request: Request, response: Response): Promise<void> {
   }
 }
 
-// Tem a brecha de escolher o campeonato que o time não disputa
 async function getInsights(
   request: Request,
   response: Response,
@@ -269,6 +272,25 @@ async function getInsights(
   }
 }
 
+async function getCompetitions(
+  request: Request,
+  response: Response
+): Promise<void> {
+  try {
+    const competitions = await findDistinctCompetitions();
+    const competitionNames = competitions.map(
+      (competition) => competition.competition
+    );
+
+    response.status(200).json(competitionNames);
+    console.log(competitions);
+    return;
+  } catch (error) {
+    console.error(error);
+    response.status(500).json(error);
+  }
+}
+
 export {
   getGamesData,
   getHomeManagers,
@@ -278,4 +300,5 @@ export {
   getTeamGamesBySeason,
   sync,
   getInsights,
+  getCompetitions,
 };

@@ -107,4 +107,15 @@ async function getGames(
   });
 }
 
-export { createGame, checkGameLinkExists, getGames };
+async function findDistinctCompetitions(): Promise<{ competition: string }[]> {
+  const competitions = await prisma.games.findMany({
+    select: {
+      competition: true,
+    },
+    distinct: ["competition"],
+  });
+
+  return competitions;
+}
+
+export { createGame, checkGameLinkExists, getGames, findDistinctCompetitions };

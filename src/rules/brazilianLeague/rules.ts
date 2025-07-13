@@ -10,9 +10,11 @@ export function chanceHomeWin(homeTeamData: Stats, awayTeamData: Stats) {
     homeTeamData.homeTeamWinPercentage
   );
   const awayTeamHomeTeamWin = parsePercentage(
-    homeTeamData.homeTeamWinPercentage
+    awayTeamData.homeTeamWinPercentage
   );
   const differenceValue = homeTeamHomeTeamWin - awayTeamHomeTeamWin;
+
+  console.log(differenceValue);
 
   if (differenceValue > -2.45 && differenceValue < 25) {
     return "Chance de vitória do time da casa";

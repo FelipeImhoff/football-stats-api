@@ -15,5 +15,6 @@ router.post("/sync", gameController.sync);
 // Trocar para time essa rota como /team/stats
 router.get("/gameStats", gameController.getGamesStats);
 router.get("/insights", gameController.getInsights);
+router.get("/competitions", gameController.getCompetitions);
 
 export default router;

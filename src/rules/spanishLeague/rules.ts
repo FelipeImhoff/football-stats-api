@@ -10,7 +10,7 @@ export function chanceHomeWin(homeTeamData: Stats, awayTeamData: Stats) {
     homeTeamData.homeTeamWinPercentage
   );
   const awayTeamHomeTeamWin = parsePercentage(
-    homeTeamData.homeTeamWinPercentage
+    awayTeamData.homeTeamWinPercentage
   );
   const differenceValue = homeTeamHomeTeamWin - awayTeamHomeTeamWin;
 
