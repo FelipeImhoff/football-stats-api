@@ -70,17 +70,20 @@ async function getTeamId(
 //verificar dados em fase de liga da champions e grupo da libertadores
 async function getManagers(page: Page): Promise<Managers> {
   const managers: Managers = await page.evaluate(() => {
-    const isLeague: boolean = document
-      .querySelector<HTMLElement>("#content > div:nth-child(2)")!
-      .innerText.includes("Matchweek");
+    const isLeagueElement = document.querySelector<HTMLElement>(
+      "#content > div:nth-child(2)"
+    );
+    const isLeague = isLeagueElement?.innerText.includes("Matchweek") ?? false;
+
     if (isLeague) {
+      console.log("is league");
       return {
         home: decodeURI(
           encodeURI(
             document
               .querySelector<HTMLElement>(
                 "#content > div.scorebox > div:nth-child(1) > div:nth-child(5)"
-              )!
+              )
               .innerText.split(": ")[1]
           ).replaceAll("%C2%A0", " ")
         ),
@@ -185,19 +188,20 @@ async function getGameData(game: Link): Promise<ScrappedGameData> {
     const managers: Managers = await getManagers(page);
     const stats: ScrappedGameData = await page.evaluate(
       (game, managers) => {
+        const homeLinkElement = document.querySelector<HTMLAnchorElement>(
+          "#content > div.scorebox > div:nth-child(1) > div:nth-child(1) > strong > a"
+        );
+        const awayLinkElement = document.querySelector<HTMLAnchorElement>(
+          "#content > div.scorebox > div:nth-child(2) > div:nth-child(1) > strong > a"
+        );
+
         const selectors: string[] = [
-          document
-            .querySelector(
-              "#content > div.scorebox > div:nth-child(1) > div:nth-child(1) > strong > a"
-            )
-            .getAttribute("href")
-            .match(/\/squads\/([^\/]+)/)[1],
-          document
-            .querySelector(
-              "#content > div.scorebox > div:nth-child(2) > div:nth-child(1) > strong > a"
-            )
-            .getAttribute("href")
-            .match(/\/squads\/([^\/]+)/)[1],
+          homeLinkElement
+            ?.getAttribute("href")
+            ?.match(/\/squads\/([^\/]+)/)?.[1] ?? "",
+          awayLinkElement
+            ?.getAttribute("href")
+            ?.match(/\/squads\/([^\/]+)/)?.[1] ?? "",
         ];
 
         return {
@@ -317,6 +321,7 @@ async function getGamesLinks(teamPage: string): Promise<Link[]> {
         .filter((node) => node.tagName === "A")
         .map((link) => {
           const row = link.closest("tr");
+          console.log(row);
           const statusCell =
             row?.querySelector<HTMLElement>("td:nth-child(19)");
 
