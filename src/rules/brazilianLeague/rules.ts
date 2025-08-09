@@ -14,8 +14,6 @@ export function chanceHomeWin(homeTeamData: Stats, awayTeamData: Stats) {
   );
   const differenceValue = homeTeamHomeTeamWin - awayTeamHomeTeamWin;
 
-  console.log(differenceValue);
-
   if (differenceValue > -2.45 && differenceValue < 25) {
     return "Chance de vitória do time da casa";
   }
@@ -55,7 +53,7 @@ export function chanceHomeOrAway(
   );
 
   if (homeTeamHomeOrAwayPercentage > 90 || absoluteDifferenceValue > 14.98) {
-    return "Chance dupla time da casa ou visitante";
+    return "Chance dupla vitória do time da casa ou do visitante";
   }
   return null;
 }

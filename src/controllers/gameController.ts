@@ -245,18 +245,9 @@ async function getInsights(
       awayTeamStatsPromise,
     ]);
 
-    if (homeTeamStats.games < 8) {
+    if (homeTeamStats.games < 8 || awayTeamStats.games < 8) {
       response.status(400).json({
-        error:
-          "Com esses filtros o time da casa não tem quantidade mínima de jogos",
-      });
-      return;
-    }
-
-    if (homeTeamStats.games < 8) {
-      response.status(400).json({
-        error:
-          "Com esses filtros o time visitante não tem quantidade mínima de jogos",
+        error: "Com esses filtros os times não tem quantidade mínima de jogos",
       });
       return;
     }
@@ -283,7 +274,6 @@ async function getCompetitions(
     );
 
     response.status(200).json(competitionNames);
-    console.log(competitions);
     return;
   } catch (error) {
     console.error(error);

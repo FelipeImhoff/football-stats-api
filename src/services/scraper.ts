@@ -287,45 +287,56 @@ async function getGameData(game: Link): Promise<ScrappedGameData> {
 
 async function getGamesLinks(teamPage: string): Promise<Link[]> {
   try {
+    console.log(`Fetching game links from: ${teamPage}`);
     const browser: Browser = await puppeteer.launch({ headless: "new" });
     const page: Page = await browser.newPage();
     page.setUserAgent(
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
     );
 
+    console.log(`Navigating to: ${teamPage}`);
+
     await page.goto(teamPage);
 
+    console.log(`Page loaded: ${teamPage}`);
+
     const links: Link[] = await page.evaluate(() => {
-      const season: string = document
-        .querySelector("#matchlogs_for_sh > h2 > span")
-        .innerHTML.substring(0, 9)
-        .match(/[0-9-]+/g)
-        .join("");
+      const span = document.querySelector("#matchlogs_for_sh > h2 > span");
+      const season: string = span
+        ? span.innerHTML
+            .substring(0, 9)
+            .match(/[0-9-]+/g)
+            ?.join("") ?? ""
+        : "";
+
       const nodeList: NodeListOf<Element> = document.querySelectorAll(
         "#matchlogs_for > tbody > tr > th > a"
       );
+
       const hrefArray: Link[] = Array.from(nodeList)
         .filter((node) => node.tagName === "A")
         .map((link) => {
-          const cancelled: boolean = link
-            .closest("tr")
-            .querySelector<HTMLElement>("td:nth-child(19)")
-            .innerHTML.toLowerCase()
-            .includes("cancelled");
-          const awarded: boolean = link
-            .closest("tr")
-            .querySelector<HTMLElement>("td:nth-child(19)")
-            .innerHTML.toLowerCase()
-            .includes("awarded");
-          if (cancelled || awarded) {
+          const row = link.closest("tr");
+          const statusCell =
+            row?.querySelector<HTMLElement>("td:nth-child(19)");
+
+          const status = statusCell?.innerHTML.toLowerCase() || "";
+
+          const cancelled = status.includes("cancelled");
+          const awarded = status.includes("awarded");
+          const postponed = status.includes("postponed");
+
+          if (cancelled || awarded || postponed) {
             return undefined;
           }
+
           return {
             gameLink: link.getAttribute("href"),
-            date: link.closest("tr").querySelector("th").getAttribute("csk"),
+            date: row?.querySelector("th")?.getAttribute("csk"),
             season,
           };
-        });
+        })
+        .filter(Boolean) as Link[]; // remove undefined
 
       return hrefArray;
     });

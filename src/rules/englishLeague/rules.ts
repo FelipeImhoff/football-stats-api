@@ -53,7 +53,7 @@ export function chanceHomeOrAway(
     homeTeamHomeOrAwayPercentage - awayTeamHomeOrAwayPercentage;
 
   if (differenceValue <= 17.08) {
-    return "Chance dupla time da casa ou visitante";
+    return "Chance dupla vitória do time da casa ou do visitante";
   }
 
   return null;
